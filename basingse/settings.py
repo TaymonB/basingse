@@ -33,9 +33,13 @@ if not DEBUG:
     if env('HTTP_X_FORWARDED_PROTO', bool, False):
         SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-# Localization, etc.
+# Internationalization, etc.
 LANGUAGE_CODE = env('LANGUAGE_CODE')
 TIME_ZONE = env('TIME_ZONE')
+
+# Elastichosts API
+ELASTICHOSTS_API_ENDPOINT = env('EHURI')
+ELASTICHOSTS_API_CREDENTIALS = tuple(env('EHAUTH').split(':', 1))
 
 # The rest of this stuff doesn't depend on deployment settings.
 
@@ -46,6 +50,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'crispy_forms',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -69,3 +74,5 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE = True
 
 USE_I18N = USE_L10N = USE_TZ = True
+
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
