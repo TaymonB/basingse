@@ -61,6 +61,8 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'basingse.urls'
 WSGI_APPLICATION = 'basingse.wsgi.application'
 
+TEMPLATE_DIRS = [root('templates')]
+
 STATIC_URL = '/static/'
 
 if not DEBUG:
