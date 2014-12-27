@@ -4,8 +4,8 @@ import gzip
 import requests
 from django.conf import settings
 
-GET, EMPTY_POST = enum.Enum('EmptyRequest', ('get', 'post'))
-EMPTY_RESP, OBJECT_RESP, BINARY_RESP = enum.Enum('ResponseType', ('empty', 'properties', 'binary'))
+GET, POST = enum.Enum('EmptyRequest', ('get', 'post'))
+EMPTY_RESP, OBJECT_RESP, BINARY_RESP = enum.Enum('ResponseType', ('empty', 'object', 'binary'))
 
 class ElastichostsException(Exception):
     pass
@@ -17,7 +17,7 @@ def api_call(resource, data=GET, expected=OBJECT_RESP, gzip_data=True):
         params['headers'] = {'Accept': 'application/json'}
     if data == GET:
         req = requests.get(**params)
-    elif data == EMPTY_POST:
+    elif data == POST:
         req = requests.post(**params)
     elif isinstance(data, dict):
         req = requests.post(json=data, **params)
@@ -34,7 +34,7 @@ def api_call(resource, data=GET, expected=OBJECT_RESP, gzip_data=True):
         req.raise_for_status()
     except requests.exceptions.HTTPError as req_error:
         if 'X-Elastic-Error' in req.headers:
-            eh_error = ElastichostsException(req.text)
+            eh_error = ElastichostsException(req.text.strip())
             eh_error.elastic_error = req.headers['X-Elastic-Error']
             raise eh_error from req_error
         else:
