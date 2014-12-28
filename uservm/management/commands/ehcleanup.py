@@ -1,5 +1,6 @@
 import datetime
 
+from django.conf import settings
 from django.core.management.base import NoArgsCommand
 from django.utils import timezone
 
@@ -9,9 +10,9 @@ from uservm.models import VirtualMachine
 class Command(NoArgsCommand):
     def handle_noargs(self, **options):
         servers = {server['server']: server for server in api_call(('servers', 'info'))
-                   if 'basingse' in server.get('tags', '').split()}
+                   if server.get('user:basingse') == settings.PUBLIC_UNIQUE_ID}
         drives = {drive['drive']: drive for drive in api_call(('drives', 'info', 'full'))
-                  if 'basingse' in drive.get('tags', '').split()}
+                  if drive.get('user:basingse') == settings.PUBLIC_UNIQUE_ID}
         for vm in VirtualMachine.objects.all():
             was_left_on = vm.last_heartbeat is not None
             should_stay_on = was_left_on and timezone.now() - vm.last_heartbeat < datetime.timedelta(hours=1)

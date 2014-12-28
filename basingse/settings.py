@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 import os
 
 from django.core.exceptions import ImproperlyConfigured
+from django.core.signing import Signer
 import environ
 
 root = environ.Path(__file__) - 2
@@ -29,6 +30,7 @@ STATIC_ROOT = root('static/')
 
 # Security
 SECRET_KEY = env('SECRET_KEY')
+PUBLIC_UNIQUE_ID = Signer().signature('basingse')
 if not DEBUG:
     ALLOWED_HOSTS = env('ALLOWED_HOSTS', list)
     if env('HTTP_X_FORWARDED_PROTO', bool, False):

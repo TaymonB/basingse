@@ -38,13 +38,14 @@ class VirtualMachine(models.Model):
     def provision_drive(self):
         template_drive_uuid, = (drive['drive'] for drive in api_call(('drives', 'info'))
                                 if drive['name'] == 'BASINGSE_TEMPLATE')
-        params = {'size': '2G', 'tags': 'basingse'}
+        params = {'size': '2G', 'user:basingse': settings.PUBLIC_UNIQUE_ID}
         self.drive_uuid = api_call(('drives', 'create'), params)['drive']
         return api_call(('drives', self.drive_uuid, 'image', template_drive_uuid), POST)
 
     def provision_server(self, start=False):
         params = {'cpu': 500, 'smp': 'auto', 'mem': 256, 'persistent': True, 'ide:0:0': self.drive_uuid,
-                  'boot': 'ide:0:0', 'nic:0:model': 'e1000', 'nic:0:dhcp': 'auto', 'vnc': 'auto', 'tags': 'basingse'}
+                  'boot': 'ide:0:0', 'nic:0:model': 'e1000', 'nic:0:dhcp': 'auto', 'vnc': 'auto',
+                  'user:basingse': settings.PUBLIC_UNIQUE_ID}
         if start:
             info = api_call(('servers', 'create'), params)
         else:
