@@ -10,6 +10,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 
 import os
 
+from django.core.exceptions import ImproperlyConfigured
 import environ
 
 root = environ.Path(__file__) - 2
@@ -36,6 +37,22 @@ if not DEBUG:
 # Internationalization, etc.
 LANGUAGE_CODE = env('LANGUAGE_CODE')
 TIME_ZONE = env('TIME_ZONE')
+
+# Email
+globals().update(env.email_url())
+if EMAIL_HOST and EMAIL_HOST != 'localhost':
+    DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+else:
+    DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', str, 'webmaster@localhost')
+
+# System administration
+ADMINS = tuple(tuple(admin.split(':', 1)) for admin in env('ADMINS', list, []))
+try:
+    MANAGERS = tuple(tuple(manager.split(':', 1)) for manager in env('MANAGERS', list))
+except ImproperlyConfigured:
+    MANAGERS = ADMINS
+SERVER_EMAIL = env('SERVER_EMAIL', str,
+                   'root@localhost' if DEFAULT_FROM_EMAIL == 'webmaster@localhost' else DEFAULT_FROM_EMAIL)
 
 # Elastichosts API
 ELASTICHOSTS_API_ENDPOINT = env('EHURI')
@@ -78,5 +95,7 @@ if not DEBUG:
 USE_I18N = USE_L10N = USE_TZ = True
 
 LOGIN_REDIRECT_URL = 'uservm.views.home'
+
+EMAIL_SUBJECT_PREFIX = 'Ba Sing Se: '
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
