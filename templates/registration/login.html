@@ -1,11 +1,14 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load crispy_forms_tags %}
 {% block title %}Login &ndash; Ba Sing Se{% endblock %}
 {% block content %}
-<form action="{% url 'django.contrib.auth.views.login' %}" method="POST">
+<form method="POST">
+  <h2>Login</h2>
   {{ form|crispy }}
   {% csrf_token %}
   <input type="hidden" name="next" value="{{ next }}">
   <input class="btn btn-default" type="submit" value="Login">
 </form>
+<hr>
+<p><a href="{% url 'django.contrib.auth.views.password_reset' %}">I forgot my password</a></p>
 {% endblock %}

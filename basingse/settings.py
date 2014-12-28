@@ -76,4 +76,6 @@ if not DEBUG:
 
 USE_I18N = USE_L10N = USE_TZ = True
 
+LOGIN_REDIRECT_URL = 'uservm.views.home'
+
 CRISPY_TEMPLATE_PACK = 'bootstrap3'

@@ -16,8 +16,16 @@
   </head>
   <body>
     <div class="container">
-      <h1 class="page-header">Ba Sing Se</h1>
+      <h1 class="page-header"><a href="{% url 'uservm.views.home' %}">Ba Sing Se</a></h1>
       {% block content %}{% endblock %}
     </div>
+	{% if user.is_authenticated %}
+	<footer class="footer">
+	  <hr>
+      <div class="container">
+        <p><a href="{% url 'django.contrib.auth.views.password_change' %}">Change password</a> &middot; <a href="{% url 'django.contrib.auth.views.logout' %}">Logout</a></p>
+      </div>
+    </footer>
+	{% endif %}
   </body>
 </html>
