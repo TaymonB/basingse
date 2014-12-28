@@ -3,6 +3,7 @@ dj-static==0.0.6
 django-crispy-forms==1.4.0
 django-environ==0.3.0
 django-sslify==0.2.4
+gunicorn==19.1.1
 psycopg2==2.5.4
 pytz==2014.10
 requests==2.5.1
