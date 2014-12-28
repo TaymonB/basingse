@@ -4,11 +4,10 @@ import gzip
 import requests
 from django.conf import settings
 
+from uservm.ehutils import exceptions
+
 GET, POST = enum.Enum('EmptyRequest', ('get', 'post'))
 EMPTY_RESP, OBJECT_RESP, BINARY_RESP = enum.Enum('ResponseType', ('empty', 'object', 'binary'))
-
-class ElastichostsException(Exception):
-    pass
 
 def api_call(resource, data=GET, expected=OBJECT_RESP, gzip_data=True):
     params = {'url': settings.ELASTICHOSTS_API_ENDPOINT + '/'.join(resource),
@@ -34,9 +33,8 @@ def api_call(resource, data=GET, expected=OBJECT_RESP, gzip_data=True):
         req.raise_for_status()
     except requests.exceptions.HTTPError as req_error:
         if 'X-Elastic-Error' in req.headers:
-            eh_error = ElastichostsException(req.text.strip())
-            eh_error.elastic_error = req.headers['X-Elastic-Error']
-            raise eh_error from req_error
+            ee, _, _ = req.headers['X-Elastic-Error'].partition(' ')
+            raise exceptions.by_elastic_error[ee](req.text.strip()) from req_error
         else:
             raise
     if expected == EMPTY_RESP:
@@ -46,4 +44,4 @@ def api_call(resource, data=GET, expected=OBJECT_RESP, gzip_data=True):
     elif expected == BINARY_RESP:
         return req.content
     else:
-        raise ArgumentError('invalid expected')
+        raise TypeError('invalid expected')
