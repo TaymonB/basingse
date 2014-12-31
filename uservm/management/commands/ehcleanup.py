@@ -1,4 +1,7 @@
 import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 from django.conf import settings
 from django.core.management.base import NoArgsCommand
@@ -19,32 +22,28 @@ class Command(NoArgsCommand):
             try:
                 drive = drives.pop(vm.drive_uuid)
             except KeyError:
-                self.stderr.write('Drive %s for VM %d not found, reprovisioning' % (vm.drive_uuid, vm.id))
-                drive = vm.provision_drive()
+                drive = vm.reprovision_missing_drive()
             try:
                 server = servers.pop(vm.server_uuid)
-                status = server['status']
             except KeyError:
-                self.stderr.write('Server %s for VM %d not found, reprovisioning (initially %s)' %
-                                  (vm.server_uuid, vm.id, 'on' if should_stay_on else 'off'))
-                server = vm.provision_server(should_stay_on)
-                status = 'active' if should_stay_on else 'stopped'
-            if status == 'active':
+                server = vm.reprovision_missing_server()
+            state = server['status']
+            if state == 'active':
                 if not should_stay_on:
                     if not was_left_on:
-                        self.stderr.write("Server %s for VM %d shouldn't be on, powering off" %
-                                          (vm.server_uuid, vm.id))
+                        logger.error("Server %s for VM %d shouldn't be on, powering off",
+                                     vm.server_uuid, vm.id)
                     vm.stop()
-            elif status == 'stopped':
-                vm.last_heartbeat = None
+            elif state == 'stopped':
+                if was_left_on:
+                    vm.heartbeat(False)
             else:
-                self.stderr.write('Server %s for VM %d has problematic status %s, powering off' %
-                                  (vm.server_uuid, vm.id, status))
+                logger.error('Server %s for VM %d has problematic status %s, powering off',
+                             vm.server_uuid, vm.id, state)
                 vm.stop()
-            vm.save()
         for server_uuid in servers:
-            self.stderr.write("Server %s doesn't belong to a VM, destroying" % server_uuid)
+            logger.error("Server %s doesn't belong to a VM, destroying", server_uuid)
             api_call(('servers', server_uuid, 'destroy'), POST, EMPTY_RESP)
         for drive_uuid in drives:
-            self.stderr.write("Drive %s doesn't belong to a VM, destroying" % drive_uuid)
+            logger.error("Drive %s doesn't belong to a VM, destroying", drive_uuid)
             api_call(('drives', drive_uuid, 'destroy'), POST, EMPTY_RESP)
