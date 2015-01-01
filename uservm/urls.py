@@ -9,4 +9,5 @@ urlpatterns = patterns('',
     url(r'^stop$', views.stop),
     url(r'^shutdown$', views.shutdown),
     url(r'^reset$', views.reset),
+    url(r'^heartbeat$', views.heartbeat),
 )
