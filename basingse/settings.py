@@ -92,7 +92,7 @@ TEMPLATE_DIRS = [root('templates')]
 STATIC_URL = '/static/'
 
 if not DEBUG:
-    CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE = True
+    pass#CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE = True
 
 USE_I18N = USE_L10N = USE_TZ = True
 
