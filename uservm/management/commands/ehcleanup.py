@@ -18,7 +18,7 @@ class Command(NoArgsCommand):
                   if drive.get('user:basingse') == settings.PUBLIC_UNIQUE_ID}
         for vm in VirtualMachine.objects.all():
             was_left_on = vm.last_heartbeat is not None
-            should_stay_on = was_left_on and timezone.now() - vm.last_heartbeat < datetime.timedelta(hours=1)
+            should_stay_on = was_left_on and timezone.now() - vm.last_heartbeat < datetime.timedelta(minutes=20)
             try:
                 drive = drives.pop(vm.drive_uuid)
             except KeyError:
