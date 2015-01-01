@@ -1,3 +1,4 @@
+import enum
 import logging
 
 from django.conf import settings
@@ -47,7 +48,7 @@ class VirtualMachine(models.Model):
                                 if drive['name'] == 'BASINGSE_TEMPLATE')
         params = {'size': '2G', 'user:basingse': settings.PUBLIC_UNIQUE_ID}
         self.drive_uuid = api_call(('drives', 'create'), params)['drive']
-        return self.api_call_on_drive(('image', template_drive_uuid), POST, missing_drive='reraise')
+        return self.api_call_on_drive(('image', template_drive_uuid), POST, missing_drive=RERAISE)
 
     def api_call_on_server(self, action, data=GET, expected=OBJECT_RESP, gzip_data=True,
                            missing_server=RETRY, missing_drive=RETRY):
@@ -84,9 +85,9 @@ class VirtualMachine(models.Model):
 
     def api_call_on_drive(self, action, data=GET, expected=OBJECT_RESP, gzip_data=True, missing_drive=RETRY):
         if isinstance(action, str):
-            resource = ('drives', self.server_uuid, action)
+            resource = ('drives', self.drive_uuid, action)
         else:
-            resource = ('drives', self.server_uuid) + tuple(action)
+            resource = ('drives', self.drive_uuid) + tuple(action)
         try:
             return api_call(resource, data, expected, gzip_data)
         except exceptions.ElastichostsMissingError:
@@ -151,7 +152,7 @@ class VirtualMachine(models.Model):
 
     def status(self):
         status = {}
-        server_info = self.get_server_info()
+        info = self.get_server_info()
         state = info['status']
         if state == 'active':
             status['address'] = info['vnc:ip']
@@ -166,10 +167,10 @@ class VirtualMachine(models.Model):
                 pass
             elif imaging.endswith('%'):
                 state = 'imaging'
-                status['percent'] = int(drive_state[:-1])
+                status['percent'] = int(imaging[:-1])
             else:
                 logger.error('Drive %s for VM %d has problematic imaging status %s',
-                             self.server_uuid, self.id, imaging)
+                             self.drive_uuid, self.id, imaging)
         else:
             logger.error('Server %s for VM %d has problematic status %s, powering off',
                          self.server_uuid, self.id, state)

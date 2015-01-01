@@ -1,10 +1,21 @@
 {% extends 'base.html' %}
-{% block content %}
-<p>Hi, {{ user.username }}!</p>
+{% load staticfiles %}
+{% block head %}
+<script>InitialStatus = {{ status|safe }};</script>
+<script src="{% static 'uservm/jquery_cookie/jquery.cookie.js' %}"></script>
+<script src="{% static 'uservm/novnc/util.js' %}"></script>
+<script src="{% static 'uservm/uservm.js' %}"></script>
 {% endblock %}
-
-start
-shutdown
-reset
-kill
-send ctrl+alt+del
+{% block content %}
+<div id="status-msg" class="alert"></div>
+<canvas id="noVNC-canvas" width="640px" height="20px">Canvas not supported.</canvas>
+<div id="off-buttons">
+  <button id="start" class="btn btn-default">Start</button>
+</div>
+<div id="on-buttons">
+  <button id="cad" class="btn btn-default">Send Control-Alt-Delete</button>
+  <button id="shutdown" class="btn btn-default">Shut Down</button>
+  <button id="reset" class="btn btn-default">Reset</button>
+  <button id="power-off" class="btn btn-default">Power Off</button>
+</div>
+{% endblock %}
