@@ -53,15 +53,16 @@ class VirtualMachine(models.Model):
     def api_call_on_server(self, action, data=GET, expected=OBJECT_RESP, gzip_data=True,
                            missing_server=RETRY, missing_drive=RETRY):
         if isinstance(action, str):
-            resource = ('servers', self.server_uuid, action)
+            resource = ['servers', self.server_uuid, action]
         else:
-            resource = ('servers', self.server_uuid) + tuple(action)
+            resource = ['servers', self.server_uuid] + list(action)
         try:
             try:
                 return api_call(resource, data, expected, gzip_data)
             except exceptions.ElastichostsMissingError:
                 if missing_server == RETRY:
                     self.reprovision_missing_server()
+                    resource[1] = self.server_uuid
                     return api_call(resource, data, expected, gzip_data)
                 elif missing_server == REPROVISION:
                     return self.reprovision_missing_server()
@@ -85,14 +86,15 @@ class VirtualMachine(models.Model):
 
     def api_call_on_drive(self, action, data=GET, expected=OBJECT_RESP, gzip_data=True, missing_drive=RETRY):
         if isinstance(action, str):
-            resource = ('drives', self.drive_uuid, action)
+            resource = ['drives', self.drive_uuid, action]
         else:
-            resource = ('drives', self.drive_uuid) + tuple(action)
+            resource = ['drives', self.drive_uuid] + list(action)
         try:
             return api_call(resource, data, expected, gzip_data)
         except exceptions.ElastichostsMissingError:
             if missing_drive == RETRY:
                 self.reprovision_missing_drive()
+                resource[1] = self.drive_uuid
                 return api_call(resource, data, expected, gzip_data)
             elif missing_drive == REPROVISION:
                 return self.reprovision_missing_drive()
@@ -102,13 +104,13 @@ class VirtualMachine(models.Model):
                 return missing_drive()
 
     def reprovision_missing_server(self, started=False):
-        logger.error('Server %s for VM %d not found, reprovisioning', (self.server_uuid, self.id))
+        logger.error('Server %s for VM %d not found, reprovisioning', self.server_uuid, self.id)
         info = self.provision_server(started)
         self.save(update_fields=('server_uuid',))
         return info
 
     def reprovision_missing_drive(self):
-        logger.error('Drive %s for VM %d not found, reprovisioning', (self.drive_uuid, self.id))
+        logger.error('Drive %s for VM %d not found, reprovisioning', self.drive_uuid, self.id)
         info = self.provision_drive()
         self.save(update_fields=('drive_uuid',))
         self.api_call_on_server('set', {'ide:0:0': self.drive_uuid}, missing_server=REPROVISION, missing_drive=RERAISE)
@@ -150,7 +152,7 @@ class VirtualMachine(models.Model):
     def reset(self):
         self.api_call_on_server('reset', POST, EMPTY_RESP, missing_server=REPROVISION)
 
-    def status(self):
+    def status(self, check_drive=True):
         status = {}
         info = self.get_server_info()
         state = info['status']
@@ -160,17 +162,18 @@ class VirtualMachine(models.Model):
         elif state == 'stopped':
             if self.last_heartbeat is not None:
                 self.heartbeat(False)
-            imaging = self.api_call_on_drive(('info', 'full')).get('imaging')
-            if imaging == 'queued':
-                state = 'queued'
-            elif imaging is None:
-                pass
-            elif imaging.endswith('%'):
-                state = 'imaging'
-                status['percent'] = int(imaging[:-1])
-            else:
-                logger.error('Drive %s for VM %d has problematic imaging status %s',
-                             self.drive_uuid, self.id, imaging)
+            if check_drive:
+                imaging = self.api_call_on_drive(('info', 'full')).get('imaging')
+                if imaging == 'queued':
+                    state = 'queued'
+                elif imaging is None:
+                    pass
+                elif imaging.endswith('%'):
+                    state = 'imaging'
+                    status['percent'] = int(imaging[:-1])
+                else:
+                    logger.error('Drive %s for VM %d has problematic imaging status %s',
+                                 self.drive_uuid, self.id, imaging)
         else:
             logger.error('Server %s for VM %d has problematic status %s, powering off',
                          self.server_uuid, self.id, state)

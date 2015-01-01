@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from jsonview.decorators import json_view
 
+from uservm.ehutils.exceptions import ElastichostsBusyError
 from uservm.models import VirtualMachine
 
 _NO_CONTENT = HttpResponse(status=204)
@@ -21,7 +22,7 @@ def _vm_for_request(request):
 
 @login_required
 def home(request):
-    return render(request, 'home.html', {'status': json.dumps(_vm_for_request(request).status())})
+    return render(request, 'home.html', {'status': json.dumps(_vm_for_request(request).status(False))})
 
 @json_view
 def status(request):
@@ -30,7 +31,10 @@ def status(request):
 @json_view
 def start(request):
     vm = _vm_for_request(request)
-    vm.start()
+    try:
+        vm.start()
+    except ElastichostsBusyError:
+        pass
     return vm.status()
 
 @json_view

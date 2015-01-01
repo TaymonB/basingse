@@ -107,21 +107,30 @@ $(function() {
       }
     });
 
+    var currently_imaging = false;
+    var ready_to_start = false;
+
     var set_mode_for_status = function(status) {
-      console.log(rfb._rfb_state);
       if (rfb._rfb_state === 'loaded' || rfb._rfb_state === 'disconnected') {
         switch (status.state) {
         case 'active':
+          currently_imaging = false;
           set_busy_mode(true, 'Machine is online. Waiting to connect\u2026');
           rfb.connect(status.address, '5700', status.password);
           break;
         case 'stopped':
+          if (currently_imaging) {
+            $.post('start', set_mode_for_status);
+          }
+          currently_imaging = false;
           $('#status-msg').text('Waiting for machine to come online\u2026');
           break;
         case 'queued':
+          currently_imaging = true;
           $('#status-msg').text('Machine\u2019s hard drive queued for imaging. This may take a while\u2026');
           break;
         case 'imaging':
+          currently_imaging = true;
           $('#status-msg').text('Machine\u2019s hard drive is imaging. ' + status.percent + '% complete\u2026');
           break;
         default:
