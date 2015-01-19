@@ -72,8 +72,8 @@ $(function() {
 
     var set_broken_mode = function(status_msg) {
       window.clearInterval(current_interval_id);
-      $('#status-msg').removeClass('alert-info alert-warning').addClass(alert-danger).text(status_msg +
-                                                                                           ' Please refresh and try again.').show();
+      $('#status-msg').removeClass('alert-info alert-warning').addClass('alert-danger').text(status_msg +
+                                                                                             ' Please refresh and try again.').show();
       $('#noVNC-canvas').hide();
       $('#off-buttons').hide();
       $('#on-buttons').hide();
