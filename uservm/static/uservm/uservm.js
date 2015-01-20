@@ -23,7 +23,7 @@ $(function() {
       ');
       var error_msg = undefined;
       try {
-        error_msg = $.parseJSON(jqXHR.responseText).message;
+        error_msg = $.parseJSON(jqxhr.responseText).message;
       } catch (e) {}
       if (typeof error_msg === 'undefined') {
         error_alert.append($('<strong>Unspecified error communicating with server.</strong>'));
