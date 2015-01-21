@@ -118,6 +118,10 @@ $(function() {
           set_busy_mode(true, 'Machine is online. Waiting to connect\u2026');
           rfb.connect(status.address, '5700', status.password);
           break;
+        case 'starting':
+          currently_imaging = false;
+          $('#status-msg').text('Waiting for machine to acquire an IP address\u2026');
+          break;
         case 'stopped':
           if (currently_imaging) {
             $.post('start', set_mode_for_status);

@@ -157,8 +157,11 @@ class VirtualMachine(models.Model):
         info = self.get_server_info()
         state = info['status']
         if state == 'active':
-            status['address'] = info['vnc:ip']
-            status['password'] = info['password']
+            if 'vnc:ip' in info and 'password' in info:
+                status['address'] = info['vnc:ip']
+                status['password'] = info['password']
+            else:
+                state = 'starting'
         elif state == 'stopped':
             if self.last_heartbeat is not None:
                 self.heartbeat(False)
